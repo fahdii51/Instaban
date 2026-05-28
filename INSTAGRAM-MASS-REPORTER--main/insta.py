@@ -68,7 +68,10 @@ def load_accounts():
             logging.info(f"Loaded {len(accounts)} accounts from {accounts_file}")
             return accounts
     except json.JSONDecodeError as e:
-        logging.error(f"Error parsing {accounts_file}: {e}")
+        logging.error(
+            f"Error parsing {accounts_file}: {e}. "
+            "Please ensure it is valid JSON and does not contain placeholders like '...'."
+        )
         return []
     except Exception as e:
         logging.error(f"Unexpected error reading {accounts_file}: {e}")

@@ -2,5 +2,7 @@
     {"username": "@dolphin.7504551", "password": "aass1122"},
     {"username": "dolphin.7504551", "password": "aass1122"},
     {"username": "dolphin.7504551", "password": "aass1122"},
-    ...
+    {"username": "user1_insta", "password": "pass1234"},
+    {"username": "user2_insta", "password": "secure567"},
+    {"username": "user3_insta", "password": "mypwd890"}
 ]
