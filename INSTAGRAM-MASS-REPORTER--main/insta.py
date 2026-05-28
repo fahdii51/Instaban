@@ -104,8 +104,16 @@ class InstagramReporter:
     def login(self, session, retries=3):
         for attempt in range(retries):
             try:
-                response = session.get(f"{self.base_url}/accounts/login/", timeout=5)
-                csrf_token = response.cookies.get("csrftoken")
+                session.headers.update({
+                    "Referer": self.base_url,
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept-Language": "en-US,en;q=0.5",
+                })
+
+                # Ensure the site sets initial cookies before requesting the login page
+                session.get(self.base_url, timeout=10)
+                response = session.get(f"{self.base_url}/accounts/login/", timeout=10)
+                csrf_token = session.cookies.get("csrftoken") or response.cookies.get("csrftoken")
                 if not csrf_token:
                     logging.error(f"No CSRF token for {self.username}")
                     time.sleep(1)
@@ -121,14 +129,23 @@ class InstagramReporter:
                     "X-CSRFToken": csrf_token,
                     "X-Requested-With": "XMLHttpRequest",
                     "Content-Type": "application/x-www-form-urlencoded",
+                    "Referer": f"{self.base_url}/accounts/login/",
                 }
                 login_url = f"{self.base_url}/accounts/login/ajax/"
-                response = session.post(login_url, data=payload, headers=headers, timeout=5)
-                if response.status_code == 200 and response.json().get("authenticated"):
+                response = session.post(login_url, data=payload, headers=headers, timeout=10)
+
+                try:
+                    result = response.json()
+                except json.JSONDecodeError:
+                    result = {}
+
+                if response.status_code == 200 and result.get("authenticated"):
                     logging.info(f"Logged in with {self.username}")
                     return session
                 else:
-                    logging.warning(f"Login attempt {attempt + 1} failed for {self.username}: {response.text}")
+                    logging.warning(
+                        f"Login attempt {attempt + 1} failed for {self.username}: {response.text.strip()}"
+                    )
                     time.sleep(1)
             except Exception as e:
                 logging.warning(f"Login error for {self.username} (attempt {attempt + 1}): {e}")
